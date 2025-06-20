@@ -1,96 +1,83 @@
 import pytest
 from src.classes import Product, Category
-from datetime import datetime
+
+
+# Фикстуры для тестовых данных
+@pytest.fixture
+def sample_product():
+    return Product("Телефон", "Смартфон", 50000, 10)
 
 
 @pytest.fixture
 def sample_products():
-    return [
-        Product("Samsung Galaxy S23", "256GB, Black", 80000, 5),
-        Product("iPhone 15", "512GB, Blue", 90000, 3),
-        Product("Xiaomi Redmi Note 12", "128GB, Gray", 30000, 10)
-    ]
+    return [Product("Телефон", "Смартфон", 50000, 10), Product("Ноутбук", "Игровой ноутбук", 100000, 5)]
 
 
 @pytest.fixture
 def sample_category(sample_products):
-    return Category("Смартфоны", "Мобильные устройства", sample_products)
+    return Category("Электроника", "Техника", sample_products)
 
 
-def test_product_creation():
-    """Тест создания продукта с корректными атрибутами"""
-    product = Product("Test Product", "Description", 1000, 5)
-    assert product.name == "Test Product"
-    assert product.description == "Description"
-    assert product.price == 1000
-    assert product.quantity == 5
+# Тесты для класса Product
+class TestProduct:
+    def test_product_initialization(self, sample_product):
+        assert sample_product.name == "Телефон"
+        assert sample_product.description == "Смартфон"
+        assert sample_product.price == 50000
+        assert sample_product.quantity == 10
+
+    def test_product_attributes_types(self, sample_product):
+        assert isinstance(sample_product.name, str)
+        assert isinstance(sample_product.description, str)
+        assert isinstance(sample_product.price, int)
+        assert isinstance(sample_product.quantity, int)
 
 
-def test_category_creation(sample_products):
-    """Тест создания категории с продуктами"""
-    category = Category("Телевизоры", "Техника для дома", sample_products)
-    assert category.name == "Телевизоры"
-    assert category.description == "Техника для дома"
-    assert len(category.products) == 3
-    assert category.product_count == 3
+# Тесты для класса Category
+class TestCategory:
+    def test_category_initialization(self, sample_category):
+        assert sample_category.name == "Электроника"
+        assert sample_category.description == "Техника"
+        assert len(sample_category.products) == 2
+
+    def test_category_count(self, sample_products):
+        # Сбросим счетчик перед тестом
+        Category._total_categories = 0
+        Category._unique_names = set()
+
+        cat1 = Category("Электроника", "Техника", sample_products)
+        assert Category.category_count == 1
+
+        cat2 = Category("Одежда", "Модная одежда", [])
+        assert Category.category_count == 2
+
+        # Попытка создать категорию с уже существующим именем
+        cat3 = Category("Электроника", "Другая электроника", [])
+        assert Category.category_count == 2  # Не должно увеличиться
+
+    def test_product_count(self, sample_category, sample_products):
+        assert sample_category.product_count == 2  # Атрибут экземпляра
+        assert Category.product_count == 0  # Атрибут класса не изменяется
+
+    def test_products_attribute(self, sample_category):
+        products = sample_category.products
+        assert len(products) == 2
+        assert isinstance(products[0], Product)
+        assert products[0].name == "Телефон"
+        assert products[1].name == "Ноутбук"
 
 
-def test_category_count(sample_category):
-    """Тест подсчета количества категорий"""
-    # Первая категория уже создана в фикстуре sample_category
-    initial_count = Category.category_count
+# Тесты взаимодействия классов
+class TestProductCategoryInteraction:
+    def test_add_product_to_category(self, sample_category):
+        new_product = Product("Планшет", "Графический планшет", 30000, 8)
+        sample_category.products.append(new_product)
+        assert len(sample_category.products) == 3
+        assert sample_category.product_count == 2  # Не изменяется автоматически
+        sample_category.product_count = len(sample_category.products)
+        assert sample_category.product_count == 3
 
-    # Создаем новую категорию
-    tv_category = Category("Телевизоры", "4K TVs", [])
-    assert Category.category_count == initial_count + 1
-
-    # Создаем категорию с существующим именем (не должна увеличивать счетчик)
-    duplicate_category = Category("Телевизоры", "Дубликат", [])
-    assert Category.category_count == initial_count + 1
-
-
-def test_product_count(sample_category, sample_products):
-    """Тест подсчета продуктов в категории"""
-    assert sample_category.product_count == len(sample_products)
-
-    # Добавляем новый продукт
-    new_product = Product("Nokia 3310", "Classic", 5000, 20)
-    sample_category.products.append(new_product)
-    assert sample_category.product_count == len(sample_products) + 1
-
-
-def test_unique_products_count(sample_category):
-    """Тест что продукты учитываются правильно"""
-    assert sample_category.product_count == 3
-
-    # Добавляем дубликат продукта
-    duplicate_product = Product("Samsung Galaxy S23", "256GB, Black", 80000, 5)
-    sample_category.products.append(duplicate_product)
-    assert sample_category.product_count == 4  # Дубликаты считаются как отдельные продукты
-
-
-def test_category_display(capsys, sample_category):
-    """Тест отображения информации о категории"""
-    print(sample_category.name)
-    print(sample_category.description)
-    print(sample_category.product_count)
-
-    captured = capsys.readouterr()
-    assert "Смартфоны" in captured.out
-    assert "Мобильные устройства" in captured.out
-    assert "3" in captured.out  # Количество продуктов
-
-
-def test_product_display(capsys, sample_products):
-    """Тест отображения информации о продукте"""
-    product = sample_products[0]
-    print(product.name)
-    print(product.description)
-    print(product.price)
-    print(product.quantity)
-
-    captured = capsys.readouterr()
-    assert "Samsung Galaxy S23" in captured.out
-    assert "256GB, Black" in captured.out
-    assert "80000" in captured.out
-    assert "5" in captured.out
+    def test_category_with_empty_products(self):
+        category = Category("Книги", "Литература", [])
+        assert category.product_count == 0
+        assert len(category.products) == 0

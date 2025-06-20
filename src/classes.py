@@ -10,7 +10,7 @@ class Category:
     _total_categories = 0
     _unique_names = set()
     category_count = 0  # Атрибут уровня класса
-    product_count = 0 # Атрибут уровня класса
+    product_count = 0  # Атрибут уровня класса
 
     def __init__(self, name, description, products):
         self.name = name
