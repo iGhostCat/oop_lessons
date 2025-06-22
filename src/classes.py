@@ -2,19 +2,59 @@ class Product:
     def __init__(self, name: str, description: str, price: float, quantity: int):
         self.name = name
         self.description = description
-        self.price = price
+        self.__price = price
         self.quantity = quantity
 
+    @property
+    def price(self):
+        return self.__price
+
+    @price.setter
+    def price(self, new_price):
+        """Сеттер для установки новой цены"""
+        if new_price <= 0:
+            print("Цена не должна быть нулевая или отрицательная")
+        elif self.__price > new_price:
+            print("Вы точно хотите снизить цену? y/n")
+            down_allowing = input("> ").strip().lower()  # Явный prompt для input
+            if down_allowing in ("y", "yes", "да"):
+                self.__price = new_price
+            else:
+                print("Снижение цены отменено")
+        else:
+            self.__price = new_price
+
     @classmethod
-    def new_product(cls, prod_dict):
-        '''Принимает данные нового продукта в словаре'''
-        return cls(str(prod_dict["name"]),
-                   str(prod_dict["description"]),
-                   float(prod_dict["price"]),
-                   int(prod_dict["quantity"]))
+    def new_product(cls, product_data: dict, products_list: list = None):
+        """Принимает данные нового продукта в словаре"""
+        # Проверяем обязательные поля
+        required_fields = ["name", "description", "price", "quantity"]
+        for field in required_fields:
+            if field not in product_data:
+                raise ValueError(f"Отсутствует обязательное поле: {field}")
+
+        name = product_data["name"]
+        description = product_data["description"]
+        price = float(product_data["price"])
+        quantity = int(product_data["quantity"])
+
+        # Если передан список товаров для проверки дубликатов
+        if products_list is not None:
+            for existing_product in products_list:
+                if existing_product.name.lower() == name.lower():
+                    # Нашли дубликат - обновляем существующий товар
+                    existing_product.quantity += quantity
+                    existing_product.price = max(existing_product.price, price)
+                    if "description" in product_data and product_data["description"]:
+                        existing_product.description = product_data["description"]
+                    return existing_product
+
+        # Если дубликатов нет или список не передан - создаем новый товар
+        return cls(name, description, price, quantity)
 
     def get_product(self):
         return f"Product({self.name}, {self.price}, {self.quantity})"
+
 
 class Category:
     _total_categories = 0
@@ -36,30 +76,40 @@ class Category:
 
     @property
     def products(self):
-        """Геттер для получения списка продуктов"""
-        return self.__products.copy()  # Возвращаем копию для защиты от изменений
+        """Геттер для получения форматированного списка товаров"""
+        products_list = []
+        for product in self.__products:
+            if isinstance(product, Product):
+                products_list.append(f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.")
+            else:
+                # Для обратной совместимости со строками
+                products_list.append(str(product))
+        return products_list
 
     def add_product(self, product):
         """Метод для добавления одного продукта"""
         self.__products.append(product)
         self.product_count = len(self.__products)
 
-    def add_cls_product(self, prod_instance):
-        self.add_product(prod_instance.name)
+    def add_cls_product(self, product: Product):
+        """Добавляет продукт и обновляет счетчик количества продуктов"""
+        if not isinstance(product, Product):
+            raise TypeError("Можно добавлять только объекты класса Product")
+        self.__products.append(product)
+        self.product_count = len(self.__products)
+
 
 products_data = [
-    {
-        "name": "Samsung Galaxy S23",
-        "description": "Флагманский смартфон Samsung",
-        "price": 79999.0,
-        "quantity": 15
-    },
-    {
-        "name": "iPhone 15",
-        "description": "Флагманский смартфон Apple",
-        "price": 89999.0,
-        "quantity": 10
-    }
+    {"name": "Samsung Galaxy S23", "description": "Флагманский смартфон Samsung", "price": 79999.0, "quantity": 15},
+    {"name": "iPhone 15", "description": "Флагманский смартфон Apple", "price": 89999.0, "quantity": 10},
 ]
-prod_1 = Product.new_product(products_data[0])
+
+"""prod_1 = Product.new_product(products_data[0])
 print(prod_1.get_product())
+
+cat_1 = Category('Смартфоны', 'Смартфоны до 100 тыс', ['Huawei One Note', 'Xiaomi Redmi 10'])
+print(cat_1.products)
+cat_1.add_cls_product(Product.new_product(products_data[1]))
+print(cat_1.products)
+cat_1.add_cls_product(prod_1)
+print(cat_1.products)"""

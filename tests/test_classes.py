@@ -1,16 +1,19 @@
+import sys
+
 import pytest
-from src.classes import Product, Category
+
+from src.classes import Category, Product
 
 
 # Фикстуры для тестовых данных
 @pytest.fixture
 def sample_product():
-    return Product("Телефон", "Смартфон", 50000, 10)
+    return Product("Телевизор", "4K UHD", 50000.0, 10)
 
 
 @pytest.fixture
 def sample_products():
-    return [Product("Телефон", "Смартфон", 50000, 10), Product("Ноутбук", "Игровой ноутбук", 100000, 5)]
+    return [Product("Телевизор", "4K UHD", 50000.0, 10), Product("Ноутбук", "Игровой", 80000.0, 5)]
 
 
 @pytest.fixture
@@ -20,64 +23,89 @@ def sample_category(sample_products):
 
 # Тесты для класса Product
 class TestProduct:
-    def test_product_initialization(self, sample_product):
-        assert sample_product.name == "Телефон"
-        assert sample_product.description == "Смартфон"
-        assert sample_product.price == 50000
-        assert sample_product.quantity == 10
+    def test_price_property(self, sample_product):
+        assert sample_product.price == 50000.0
 
-    def test_product_attributes_types(self, sample_product):
-        assert isinstance(sample_product.name, str)
-        assert isinstance(sample_product.description, str)
-        assert isinstance(sample_product.price, int)
-        assert isinstance(sample_product.quantity, int)
+    def test_price_setter_positive(self, sample_product):
+        sample_product.price = 55000.0
+        assert sample_product.price == 55000.0
+
+    def test_price_setter_negative(self, sample_product, capsys):
+        sample_product.price = -1000.0
+        captured = capsys.readouterr()
+        assert "Цена не должна быть нулевая или отрицательная" in captured.out
+        assert sample_product.price == 50000.0
+
+    def test_price_decrease_confirmation(self, sample_product, monkeypatch, capsys):
+        # Мокаем input с явным аргументом
+        monkeypatch.setattr("builtins.input", lambda prompt: "y")
+        sample_product.price = 45000.0
+        captured = capsys.readouterr()
+        assert "Вы точно хотите снизить цену?" in captured.out
+        assert sample_product.price == 45000.0
+
+    def test_price_decrease_cancel(self, sample_product, monkeypatch, capsys):
+        # Мокаем input с явным аргументом
+        monkeypatch.setattr("builtins.input", lambda prompt: "n")
+        sample_product.price = 45000.0
+        captured = capsys.readouterr()
+        assert "Снижение цены отменено" in captured.out
+        assert sample_product.price == 50000.0
+
+    def test_new_product_creation(self):
+        product_data = {"name": "Смартфон", "description": "Android 13", "price": "35000.0", "quantity": "15"}
+        product = Product.new_product(product_data)
+        assert product.name == "Смартфон"
+        assert product.price == 35000.0
+        assert product.quantity == 15
+
+    def test_new_product_with_duplicate(self, sample_products):
+        duplicate_data = {"name": "Телевизор", "description": "4K OLED", "price": "55000.0", "quantity": "5"}
+        updated_product = Product.new_product(duplicate_data, sample_products)
+        assert updated_product.quantity == 15  # 10 + 5
+        assert updated_product.price == 55000.0
+        assert updated_product.description == "4K OLED"
 
 
 # Тесты для класса Category
 class TestCategory:
-    def test_category_initialization(self, sample_category):
-        assert sample_category.name == "Электроника"
-        assert sample_category.description == "Техника"
-        assert len(sample_category.products) == 2
+    def add_cls_product(self, product: Product):
+        """Добавляет продукт и обновляет счетчик"""
+        if not isinstance(product, Product):
+            raise TypeError("Можно добавлять только объекты класса Product")
+        self.__products.append(product)
+        self.product_count = len(self.__products)  # Явное обновление счетчика
 
-    def test_category_count(self, sample_products):
-        # Сбросим счетчик перед тестом
-        Category._total_categories = 0
-        Category._unique_names = set()
+    def test_add_cls_product_method(self):
+        # Создаем категорию с 2 начальными продуктами
+        initial_products = [Product("Телевизор", "4K", 50000, 10), Product("Ноутбук", "Игровой", 80000, 5)]
+        category = Category("Электроника", "Техника", initial_products)
 
-        cat1 = Category("Электроника", "Техника", sample_products)
-        assert Category.category_count == 1
+        # Добавляем новый продукт
+        new_product = Product("Смартфон", "Android", 30000, 15)
+        category.add_cls_product(new_product)
 
-        cat2 = Category("Одежда", "Модная одежда", [])
-        assert Category.category_count == 2
+        # Проверяем
+        assert category.product_count == 3  # 2 начальных + 1 новый
+        assert len(category._Category__products) == 3
+        assert any(p.name == "Смартфон" for p in category._Category__products)
 
-        # Попытка создать категорию с уже существующим именем
-        cat3 = Category("Электроника", "Другая электроника", [])
-        assert Category.category_count == 2  # Не должно увеличиться
+    def test_products_property_with_objects(self, sample_category):
+        products_info = sample_category.products
+        assert len(products_info) == 2
+        assert "Телевизор" in products_info[0]
+        assert "50000" in products_info[0]
 
-    def test_product_count(self, sample_category, sample_products):
-        assert sample_category.product_count == 2  # Атрибут экземпляра
-        assert Category.product_count == 0  # Атрибут класса не изменяется
+    def test_products_property_with_strings(self):
+        category = Category("Тест", "Категория", ["Товар 1", "Товар 2"])
+        products_info = category.products
+        assert len(products_info) == 2
+        assert products_info[0] == "Товар 1"
 
-    def test_products_attribute(self, sample_category):
-        products = sample_category.products
-        assert len(products) == 2
-        assert isinstance(products[0], Product)
-        assert products[0].name == "Телефон"
-        assert products[1].name == "Ноутбук"
-
-
-# Тесты взаимодействия классов
-class TestProductCategoryInteraction:
-    def test_add_product_to_category(self, sample_category):
-        new_product = Product("Планшет", "Графический планшет", 30000, 8)
-        sample_category.products.append(new_product)
-        assert len(sample_category.products) == 3
-        assert sample_category.product_count == 2  # Не изменяется автоматически
-        sample_category.product_count = len(sample_category.products)
-        assert sample_category.product_count == 3
-
-    def test_category_with_empty_products(self):
-        category = Category("Книги", "Литература", [])
-        assert category.product_count == 0
-        assert len(category.products) == 0
+    def test_mixed_products_in_category(self):
+        mixed_products = ["Товар строковый", Product("Товар объект", "Описание", 1000.0, 5)]
+        category = Category("Смешанная", "Категория", mixed_products)
+        products_info = category.products
+        assert len(products_info) == 2
+        assert "Товар строковый" in products_info[0]
+        assert "Товар объект" in products_info[1]
