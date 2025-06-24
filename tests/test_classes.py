@@ -1,5 +1,7 @@
 import sys
+
 import pytest
+
 from src.classes import Category, Product
 
 
@@ -11,10 +13,7 @@ def sample_product():
 
 @pytest.fixture
 def sample_products():
-    return [
-        Product("Телевизор", "4K UHD", 50000.0, 10),
-        Product("Ноутбук", "Игровой", 80000.0, 5)
-    ]
+    return [Product("Телевизор", "4K UHD", 50000.0, 10), Product("Ноутбук", "Игровой", 80000.0, 5)]
 
 
 @pytest.fixture
@@ -43,8 +42,9 @@ class TestProductMagicMethods:
 
     def test_product_addition_with_non_product(self, sample_product):
         """Тестирование сложения продукта с не-продуктом"""
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError) as excinfo:
             result = sample_product + 100
+        assert "Можно складывать только объекты класса Product" in str(excinfo.value)
 
     def test_product_addition_same_product(self, sample_product):
         """Тестирование сложения продукта с самим собой"""
@@ -103,7 +103,7 @@ class TestIntegrationMagicMethods:
         # Создаем вторую категорию с другими продуктами
         other_products = [
             Product("Наушники", "Беспроводные", 15000.0, 20),
-            Product("Клавиатура", "Механическая", 8000.0, 15)
+            Product("Клавиатура", "Механическая", 8000.0, 15),
         ]
         other_category = Category("Аксессуары", "Периферия", other_products)
 
@@ -115,8 +115,9 @@ class TestIntegrationMagicMethods:
         expected = (50000.0 * 10) + (8000.0 * 15)
         assert total_value == expected
 
+
 ##############################################
-#ТЕСТЫ ДЛЯ КЛАССОВ
+# ТЕСТЫ ДЛЯ КЛАССОВ
 # Фикстуры для тестовых данных
 @pytest.fixture
 def sample_product():

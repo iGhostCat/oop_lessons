@@ -6,14 +6,17 @@ class Product:
         self.quantity = quantity
 
     def __str__(self):
-        return f'{self.name}, {self.__price} руб. Остаток: {self.quantity} шт. '
+        return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт. "
 
     @property
     def price(self):
         return self.__price
 
     def __add__(self, other):
-        return ((self.__price * self.quantity)+(other.__price * other.quantity))
+        """Сложение продуктов с проверкой типа"""
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты класса Product")
+        return (self.price * self.quantity) + (other.price * other.quantity)
 
     @price.setter
     def price(self, new_price):
@@ -80,10 +83,9 @@ class Category:
 
         self.product_count = len(products)  # Атрибут экземпляра
 
-
-
     def __str__(self):
-        return f'{self.name}, количество продуктов: {len(self.__products)} шт.'
+        return f"{self.name}, количество продуктов: {len(self.__products)} шт."
+
     @property
     def products(self):
         """Геттер для получения форматированного списка товаров"""
@@ -108,7 +110,8 @@ class Category:
         self.__products.append(product)
         self.product_count = len(self.__products)
 
-'''
+
+"""
 products_data = [
     {"name": "Samsung Galaxy S23", "description": "Флагманский смартфон Samsung", "price": 79999.0, "quantity": 15},
     {"name": "iPhone 15", "description": "Флагманский смартфон Apple", "price": 89999.0, "quantity": 10},
@@ -130,4 +133,4 @@ print(cat_1.products)
 print(prod_1)
 
 print(cat_1)
-print()'''
+print()"""
