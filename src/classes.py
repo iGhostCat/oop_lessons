@@ -84,7 +84,8 @@ class Category:
         self.product_count = len(products)  # Атрибут экземпляра
 
     def __str__(self):
-        return f"{self.name}, количество продуктов: {len(self.__products)} шт."
+        total_quantity = sum(product.quantity for product in self.__products if isinstance(product, Product))
+        return f"{self.name}, количество товаров: {total_quantity} шт."
 
     @property
     def products(self):
@@ -111,8 +112,7 @@ class Category:
         self.product_count = len(self.__products)
 
 
-"""
-products_data = [
+"""products_data = [
     {"name": "Samsung Galaxy S23", "description": "Флагманский смартфон Samsung", "price": 79999.0, "quantity": 15},
     {"name": "iPhone 15", "description": "Флагманский смартфон Apple", "price": 89999.0, "quantity": 10},
 ]
@@ -133,4 +133,4 @@ print(cat_1.products)
 print(prod_1)
 
 print(cat_1)
-print()"""
+"""

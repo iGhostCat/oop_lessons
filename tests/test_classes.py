@@ -55,34 +55,37 @@ class TestProductMagicMethods:
 
 # Тесты для магических методов класса Category
 class TestCategoryMagicMethods:
-    def test_category_str_representation(self, sample_category):
+    def test_category_str_representation(self, sample_products):
         """Тестирование строкового представления категории"""
-        result = str(sample_category)
-        assert "Электроника" in result
-        assert "количество продуктов" in result
-        assert "шт." in result
+        category = Category("Электроника", "Техника", sample_products)
+        result = str(category)
+        assert result == "Электроника, количество товаров: 15 шт."  # 10 + 5
 
     def test_category_str_with_empty_products(self):
-        """Тестирование строкового представления пустой категории"""
-        category = Category("Пустая", "Категория без продуктов", [])
-        result = str(category)
-        assert "Пустая" in result
-        assert "0" in result or "ноль" in result or "нет" in result
+        """Тестирование пустой категории"""
+        category = Category("Пустая", "Категория без товаров", [])
+        assert str(category) == "Пустая, количество товаров: 0 шт."
 
     def test_category_str_after_adding_product(self, sample_category):
-        """Тестирование изменения строкового представления после добавления продукта"""
+        """Тестирование изменения после добавления товара"""
         initial_str = str(sample_category)
-        new_product = Product("Смартфон", "Android", 30000.0, 15)
+        assert "15" in initial_str  # Проверяем начальное количество (10 + 5)
+
+        new_product = Product("Смартфон", "Android", 30000, 8)
         sample_category.add_cls_product(new_product)
+
         new_str = str(sample_category)
+        assert new_str == "Электроника, количество товаров: 23 шт."  # 10 + 5 + 8
 
-        assert "Электроника" in new_str
-        assert "3" in new_str  # Было 2 продукта, добавили один - стало 3
-
-        # Проверяем что количество изменилось
-        assert initial_str != new_str
-        assert "2" in initial_str
-        assert "3" in new_str
+    def test_category_str_with_mixed_products(self):
+        """Тестирование с разными типами товаров"""
+        mixed_products = [
+            Product("Телевизор", "4K", 50000, 3),
+            "Некий товар",  # Строка вместо Product
+            Product("Ноутбук", "Игровой", 80000, 2),
+        ]
+        category = Category("Смешанная", "Категория", mixed_products)
+        assert str(category) == "Смешанная, количество товаров: 5 шт."  # 3 + 0 + 2
 
 
 # Дополнительные тесты для проверки взаимодействия
