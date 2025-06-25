@@ -21,6 +21,122 @@ def sample_category(sample_products):
     return Category("Электроника", "Техника", sample_products)
 
 
+# Тесты для магических методов класса Product
+class TestProductMagicMethods:
+    def test_product_str_representation(self, sample_product):
+        """Тестирование строкового представления продукта"""
+        result = str(sample_product)
+        assert "Телевизор" in result
+        assert "50000" in result
+        assert "10" in result
+        assert "руб." in result
+        assert "Остаток" in result
+        assert "шт." in result
+
+    def test_product_addition(self, sample_products):
+        """Тестирование сложения двух продуктов"""
+        product1, product2 = sample_products
+        total_value = product1 + product2
+        expected = (50000.0 * 10) + (80000.0 * 5)
+        assert total_value == expected
+
+    def test_product_addition_with_non_product(self, sample_product):
+        """Тестирование сложения продукта с не-продуктом"""
+        with pytest.raises(TypeError) as excinfo:
+            result = sample_product + 100
+        assert "Можно складывать только объекты класса Product" in str(excinfo.value)
+
+    def test_product_addition_same_product(self, sample_product):
+        """Тестирование сложения продукта с самим собой"""
+        total_value = sample_product + sample_product
+        expected = (50000.0 * 10) * 2
+        assert total_value == expected
+
+
+# Тесты для магических методов класса Category
+class TestCategoryMagicMethods:
+    def test_category_str_representation(self, sample_products):
+        """Тестирование строкового представления категории"""
+        category = Category("Электроника", "Техника", sample_products)
+        result = str(category)
+        assert result == "Электроника, количество товаров: 15 шт."  # 10 + 5
+
+    def test_category_str_with_empty_products(self):
+        """Тестирование пустой категории"""
+        category = Category("Пустая", "Категория без товаров", [])
+        assert str(category) == "Пустая, количество товаров: 0 шт."
+
+    def test_category_str_after_adding_product(self, sample_category):
+        """Тестирование изменения после добавления товара"""
+        initial_str = str(sample_category)
+        assert "15" in initial_str  # Проверяем начальное количество (10 + 5)
+
+        new_product = Product("Смартфон", "Android", 30000, 8)
+        sample_category.add_cls_product(new_product)
+
+        new_str = str(sample_category)
+        assert new_str == "Электроника, количество товаров: 23 шт."  # 10 + 5 + 8
+
+    def test_category_str_with_mixed_products(self):
+        """Тестирование с разными типами товаров"""
+        mixed_products = [
+            Product("Телевизор", "4K", 50000, 3),
+            "Некий товар",  # Строка вместо Product
+            Product("Ноутбук", "Игровой", 80000, 2),
+        ]
+        category = Category("Смешанная", "Категория", mixed_products)
+        assert str(category) == "Смешанная, количество товаров: 5 шт."  # 3 + 0 + 2
+
+
+# Дополнительные тесты для проверки взаимодействия
+class TestIntegrationMagicMethods:
+    def test_product_str_in_category_products(self, sample_category):
+        """Тестирование что строковое представление продукта используется в категории"""
+        products_info = sample_category.products
+        assert len(products_info) == 2
+        assert "Телевизор" in products_info[0]
+        assert "50000" in products_info[0]
+        assert "10" in products_info[0]
+        assert "Ноутбук" in products_info[1]
+        assert "80000" in products_info[1]
+        assert "5" in products_info[1]
+
+    def test_add_products_from_different_categories(self, sample_category):
+        """Тестирование сложения продуктов из разных категорий"""
+        # Создаем вторую категорию с другими продуктами
+        other_products = [
+            Product("Наушники", "Беспроводные", 15000.0, 20),
+            Product("Клавиатура", "Механическая", 8000.0, 15),
+        ]
+        other_category = Category("Аксессуары", "Периферия", other_products)
+
+        # Складываем продукты из разных категорий
+        product1 = sample_category._Category__products[0]  # Телевизор
+        product2 = other_category._Category__products[1]  # Клавиатура
+
+        total_value = product1 + product2
+        expected = (50000.0 * 10) + (8000.0 * 15)
+        assert total_value == expected
+
+
+##############################################
+# ТЕСТЫ ДЛЯ КЛАССОВ
+# Фикстуры для тестовых данных
+@pytest.fixture
+def sample_product():
+    return Product("Телевизор", "4K UHD", 50000.0, 10)
+
+
+@pytest.fixture
+def sample_products():
+    return [Product("Телевизор", "4K UHD", 50000.0, 10), Product("Ноутбук", "Игровой", 80000.0, 5)]
+
+
+@pytest.fixture
+def sample_category(sample_products):
+    return Category("Электроника", "Техника", sample_products)
+
+
 # Тесты для класса Product
 class TestProduct:
     def test_price_property(self, sample_product):

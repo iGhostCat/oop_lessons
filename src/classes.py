@@ -5,9 +5,18 @@ class Product:
         self.__price = price
         self.quantity = quantity
 
+    def __str__(self):
+        return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт. "
+
     @property
     def price(self):
         return self.__price
+
+    def __add__(self, other):
+        """Сложение продуктов с проверкой типа"""
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты класса Product")
+        return (self.price * self.quantity) + (other.price * other.quantity)
 
     @price.setter
     def price(self, new_price):
@@ -74,6 +83,10 @@ class Category:
 
         self.product_count = len(products)  # Атрибут экземпляра
 
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.__products if isinstance(product, Product))
+        return f"{self.name}, количество товаров: {total_quantity} шт."
+
     @property
     def products(self):
         """Геттер для получения форматированного списка товаров"""
@@ -99,17 +112,25 @@ class Category:
         self.product_count = len(self.__products)
 
 
-products_data = [
+"""products_data = [
     {"name": "Samsung Galaxy S23", "description": "Флагманский смартфон Samsung", "price": 79999.0, "quantity": 15},
     {"name": "iPhone 15", "description": "Флагманский смартфон Apple", "price": 89999.0, "quantity": 10},
 ]
 
-"""prod_1 = Product.new_product(products_data[0])
+prod_1 = Product.new_product(products_data[0])
 print(prod_1.get_product())
+prod_2 = Product.new_product(products_data[1])
+print(prod_2.get_product())
+
+print(prod_1+prod_2)
 
 cat_1 = Category('Смартфоны', 'Смартфоны до 100 тыс', ['Huawei One Note', 'Xiaomi Redmi 10'])
 print(cat_1.products)
 cat_1.add_cls_product(Product.new_product(products_data[1]))
 print(cat_1.products)
 cat_1.add_cls_product(prod_1)
-print(cat_1.products)"""
+print(cat_1.products)
+print(prod_1)
+
+print(cat_1)
+"""
