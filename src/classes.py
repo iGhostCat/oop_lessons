@@ -111,6 +111,27 @@ class Category:
         self.__products.append(product)
         self.product_count = len(self.__products)
 
+class Smartphone(Product):
+    def __init__(self, name, description, price, quantity, efficiency, model, memory, color):
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+
+
+class LawnGrass(Product):
+    def __init__(self, name, description, price, quantity, country, germination_period, color):
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
+
+
+
+
+
 
 """products_data = [
     {"name": "Samsung Galaxy S23", "description": "Флагманский смартфон Samsung", "price": 79999.0, "quantity": 15},
