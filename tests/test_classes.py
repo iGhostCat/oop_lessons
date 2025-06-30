@@ -2,7 +2,72 @@ import sys
 
 import pytest
 
-from src.classes import Category, Product
+from src.classes import Category, LawnGrass, Product, Smartphone
+
+##############################################
+# ТЕСТЫ ДЛЯ ПОДКЛАССОВ SMARTPHONES И LAWNGRASS
+
+
+# Фикстуры для тестовых данных
+@pytest.fixture
+def sample_smartphone():
+    return Smartphone("iPhone 15", "Флагман", 1000, 10, "High", "15 Pro", "256GB", "black")
+
+
+@pytest.fixture
+def sample_lawn_grass():
+    return LawnGrass("Газонная трава", "Премиум", 50, 100, "Россия", "30 дней", "зеленый")
+
+
+@pytest.fixture
+def sample_category():
+    return Category("Тестовая категория", "Описание", [])
+
+
+class TestCategoryAddProduct:
+    def test_add_smartphone_to_category(self, sample_category, sample_smartphone):
+        initial_count = sample_category.product_count
+        sample_category.add_product(sample_smartphone)
+        assert sample_category.product_count == initial_count + 1
+        assert sample_smartphone in sample_category._Category__products
+
+    def test_add_lawn_grass_to_category(self, sample_category, sample_lawn_grass):
+        initial_count = sample_category.product_count
+        sample_category.add_product(sample_lawn_grass)
+        assert sample_category.product_count == initial_count + 1
+        assert sample_lawn_grass in sample_category._Category__products
+
+    def test_add_invalid_product_type(self, sample_category):
+        initial_count = sample_category.product_count
+        with pytest.raises(TypeError):
+            sample_category.add_product("не продукт")
+        assert sample_category.product_count == initial_count
+
+    def test_add_multiple_products(self, sample_category, sample_smartphone, sample_lawn_grass):
+        initial_count = sample_category.product_count
+        sample_category.add_product(sample_smartphone)
+        sample_category.add_product(sample_lawn_grass)
+        assert sample_category.product_count == initial_count + 2
+        assert len(sample_category._Category__products) == initial_count + 2
+
+
+class TestIntegration:
+    def test_smartphone_category_interaction(self):
+        # Создаем категорию с начальным списком продуктов
+        phone1 = Smartphone("Phone1", "Desc1", 1000, 5, "High", "M1", "64GB", "red")
+        phone2 = Smartphone("Phone2", "Desc2", 800, 10, "Medium", "M2", "128GB", "blue")
+        category = Category("Смартфоны", "Тестовые смартфоны", [phone1, phone2])
+
+        # Проверяем начальное состояние
+        assert category.product_count == 2
+
+        # Добавляем еще один продукт
+        phone3 = Smartphone("Phone3", "Desc3", 700, 8, "Low", "M3", "256GB", "green")
+        category.add_product(phone3)
+
+        # Проверяем обновленное состояние
+        assert category.product_count == 3
+        assert (phone1 + phone2) == (1000 * 5 + 800 * 10)
 
 
 # Фикстуры для тестовых данных
@@ -21,6 +86,7 @@ def sample_category(sample_products):
     return Category("Электроника", "Техника", sample_products)
 
 
+################################################
 # Тесты для магических методов класса Product
 class TestProductMagicMethods:
     def test_product_str_representation(self, sample_product):
