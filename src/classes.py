@@ -101,8 +101,11 @@ class Category:
 
     def add_product(self, product):
         """Метод для добавления одного продукта"""
-        self.__products.append(product)
-        self.product_count = len(self.__products)
+        if not isinstance(product, Product):
+            raise TypeError
+        else:
+            self.__products.append(product)
+            self.product_count = len(self.__products)
 
     def add_cls_product(self, product: Product):
         """Добавляет продукт и обновляет счетчик количества продуктов"""
@@ -110,6 +113,37 @@ class Category:
             raise TypeError("Можно добавлять только объекты класса Product")
         self.__products.append(product)
         self.product_count = len(self.__products)
+
+
+class Smartphone(Product):
+    def __init__(self, name, description, price, quantity, efficiency, model, memory, color):
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+    def __add__(self, other):
+        """Сложение с проверкой ТОЧНОГО совпадения классов"""
+        if type(self) != type(other):
+            raise TypeError
+        else:
+            return (self.price * self.quantity) + (other.price * other.quantity)
+
+
+class LawnGrass(Product):
+    def __init__(self, name, description, price, quantity, country, germination_period, color):
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
+
+    def __add__(self, other):
+        """Сложение с проверкой ТОЧНОГО совпадения классов"""
+        if type(self) != type(other):
+            raise TypeError
+        else:
+            return (self.price * self.quantity) + (other.price * other.quantity)
 
 
 """products_data = [
