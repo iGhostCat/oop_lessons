@@ -1,4 +1,42 @@
-class Product:
+from abc import ABC, abstractmethod
+from typing import Dict, Optional, List
+
+
+class BaseProduct(ABC):
+
+    class BaseProduct(ABC):
+        @property
+        @abstractmethod
+        def price(self) -> float:
+            pass
+
+        @price.setter
+        @abstractmethod
+        def price(self, value: float) -> None:
+            pass
+
+        @abstractmethod
+        def __str__(self) -> str:
+            pass
+
+        @classmethod
+        @abstractmethod
+        def new_product(cls, product_data: Dict, products_list: Optional[List['BaseProduct']] = None) -> 'BaseProduct':
+            pass
+
+
+class MixinLog:
+    ID = 1
+
+    def __init__(self):
+        self.id = self.ID
+        MixinLog.ID += 1
+    @classmethod
+    def order_log(cls):
+        print('Продукт1', 'Описание продукта', 1200, 10)
+
+
+class Product(BaseProduct):
     def __init__(self, name: str, description: str, price: float, quantity: int):
         self.name = name
         self.description = description
