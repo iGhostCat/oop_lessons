@@ -2,9 +2,29 @@ from abc import ABC, abstractmethod
 from typing import Dict, Optional, List
 
 
-class BaseProduct(ABC):
 
-    class BaseProduct(ABC):
+class MixinLog:
+    ID = 1
+
+    def __init__(self, *args, **kwargs):
+        init_args = {
+        'args': args,
+        'kwargs': kwargs
+                    }
+        super().__init__(*args, **kwargs)
+        self.id = self.ID
+        MixinLog.ID += 1
+
+    def __repr__(self):
+        """Метод для представления объекта в виде строки"""
+        return f"{self.__class__.__name__}('{self.name}', '{self.description}', {self.price}, {self.quantity})"
+
+    def log_product(self):
+        """Метод для вывода информации о продукте в консоль"""
+        print(self.__repr__())
+
+class BaseProduct(ABC, MixinLog):
+
         @property
         @abstractmethod
         def price(self) -> float:
@@ -25,19 +45,10 @@ class BaseProduct(ABC):
             pass
 
 
-class MixinLog:
-    ID = 1
-
-    def __init__(self):
-        self.id = self.ID
-        MixinLog.ID += 1
-    @classmethod
-    def order_log(cls):
-        print('Продукт1', 'Описание продукта', 1200, 10)
-
 
 class Product(BaseProduct):
     def __init__(self, name: str, description: str, price: float, quantity: int):
+        super().__init__()
         self.name = name
         self.description = description
         self.__price = price
