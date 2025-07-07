@@ -53,6 +53,11 @@ class Product(BaseProduct):
         self.description = description
         self.__price = price
         self.quantity = quantity
+        if self.quantity == 0:
+            raise ValueError('Товар с нулевым количеством не может быть добавлен')
+
+
+
 
     def __str__(self):
         return f"{self.name}, {self.__price} руб. Остаток: {self.quantity} шт. "
@@ -136,6 +141,7 @@ class Category:
         total_quantity = sum(product.quantity for product in self.__products if isinstance(product, Product))
         return f"{self.name}, количество товаров: {total_quantity} шт."
 
+
     @property
     def products(self):
         """Геттер для получения форматированного списка товаров"""
@@ -162,6 +168,20 @@ class Category:
             raise TypeError("Можно добавлять только объекты класса Product")
         self.__products.append(product)
         self.product_count = len(self.__products)
+
+    @property
+    def avg_price(self):
+        """
+        Рассчитывает среднюю цену товаров в категории.
+        Возвращает 0, если в категории нет товаров.
+        """
+        try:
+            total_price = sum(product.price for product in self.__products)
+            return total_price / len(self.__products)
+        except ZeroDivisionError:
+            return 0
+
+
 
 
 class Smartphone(Product):
