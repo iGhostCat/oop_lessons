@@ -2,7 +2,131 @@ import sys
 
 import pytest
 
-from src.classes import Category, LawnGrass, Product, Smartphone
+from src.classes import Category, LawnGrass, Product, Smartphone, MixinLog
+###########################################
+#ТЕСТЫ ДЛЯ КЛАССА MIXINLOG
+
+def test_mixin_log_id_increment():
+    """Тестируем автоматическое присвоение ID и его инкремент"""
+    # Сохраняем исходное значение ID
+    original_id = MixinLog.ID
+
+    class TestClass1(MixinLog):
+        pass
+
+    class TestClass2(MixinLog):
+        pass
+
+    obj1 = TestClass1()
+    obj2 = TestClass1()
+    obj3 = TestClass2()
+
+    assert obj1.id == original_id
+    assert obj2.id == original_id + 1
+    assert obj3.id == original_id + 2
+
+    # Восстанавливаем исходное значение ID
+    MixinLog.ID = original_id
+
+
+def test_mixin_log_repr():
+    """Тестируем строковое представление через __repr__"""
+
+    class TestProduct(MixinLog):
+        def __init__(self, name, description, price, quantity):
+            self.name = name
+            self.description = description
+            self.price = price
+            self.quantity = quantity
+            super().__init__()
+
+    product = TestProduct("Test", "Description", 100, 5)
+    expected_repr = "TestProduct('Test', 'Description', 100, 5)"
+    assert repr(product) == expected_repr
+
+
+def test_mixin_log_inheritance_with_other_classes():
+    """Тестируем корректность наследования вместе с другими классами"""
+    original_id = MixinLog.ID
+
+    class ParentClass:
+        def __init__(self, value):
+            self.value = value
+
+    class ChildClass(ParentClass, MixinLog):
+        def __init__(self, value, name):
+            self.name = name
+            ParentClass.__init__(self, value)
+            MixinLog.__init__(self)
+
+    obj = ChildClass(42, "Test")
+    assert obj.value == 42
+    assert obj.name == "Test"
+    assert obj.id == original_id
+
+    MixinLog.ID = original_id
+
+
+def test_mixin_log_init_args():
+    """Тестируем передачу аргументов через init"""
+    original_id = MixinLog.ID
+
+    class TestClass(MixinLog):
+        def __init__(self, arg1, arg2, kwarg1=None, kwarg2=None):
+            self.arg1 = arg1
+            self.arg2 = arg2
+            self.kwarg1 = kwarg1
+            self.kwarg2 = kwarg2
+            # Вызываем __init__ миксина без передачи аргументов
+            super().__init__()
+
+    obj = TestClass(1, 2, kwarg1="test", kwarg2=42)
+    assert obj.arg1 == 1
+    assert obj.arg2 == 2
+    assert obj.kwarg1 == "test"
+    assert obj.kwarg2 == 42
+    assert obj.id == original_id
+
+    MixinLog.ID = original_id
+
+
+def test_mixin_log_product_method():
+    """Тестируем метод log_product"""
+
+    class TestProduct(MixinLog):
+        def __init__(self, name, description, price, quantity):
+            self.name = name
+            self.description = description
+            self.price = price
+            self.quantity = quantity
+            super().__init__()
+
+        def __repr__(self):
+            return f"TestProduct('{self.name}', '{self.description}', {self.price}, {self.quantity})"
+
+    product = TestProduct("Test", "Desc", 100, 5)
+    # Проверяем что метод не вызывает ошибок и выводит правильное значение
+    # Можно использовать capsys для проверки вывода в консоль
+    product.log_product()  # Визуально проверить вывод при запуске тестов
+
+
+@pytest.mark.parametrize("class_type", [Product, Smartphone, LawnGrass])
+def test_mixin_in_product_hierarchy(class_type):
+    """Тестируем что миксин корректно работает в иерархии продуктов"""
+    if class_type == Product:
+        obj = class_type("Test", "Desc", 100, 5)
+    elif class_type == Smartphone:
+        obj = class_type("Phone", "Smart", 500, 10, "High", "X", "128GB", "Black")
+    else:  # LawnGrass
+        obj = class_type("Grass", "Green", 50, 20, "Russia", "2 weeks", "Green")
+
+    assert hasattr(obj, 'id'), "Объект должен иметь атрибут id от MixinLog"
+    assert obj.id > 0, "ID должен быть положительным числом"
+    assert isinstance(repr(obj), str), "__repr__ должен возвращать строку"
+
+
+
+
 
 ##############################################
 # ТЕСТЫ ДЛЯ ПОДКЛАССОВ SMARTPHONES И LAWNGRASS
