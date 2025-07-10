@@ -3,6 +3,86 @@ import sys
 import pytest
 
 from src.classes import Category, LawnGrass, Product, Smartphone, MixinLog
+
+
+###########################################
+#Тесты для исключений
+
+
+class TestCategoryAvgPrice:
+    """Тесты для метода avg_price класса Category"""
+
+    def test_avg_price_with_products(self):
+        """Тест расчета средней цены при наличии товаров"""
+        # Создаем тестовые продукты
+        product1 = Product("Товар 1", "Описание 1", 100, 10)
+        product2 = Product("Товар 2", "Описание 2", 200, 5)
+        product3 = Product("Товар 3", "Описание 3", 300, 3)
+
+        # Создаем категорию с товарами
+        category = Category("Тест", "Тестовая категория", [product1, product2, product3])
+
+        # Ожидаемая средняя цена: (100 + 200 + 300) / 3 = 200
+        assert category.avg_price == 200
+
+    def test_avg_price_with_single_product(self):
+        """Тест расчета средней цены при одном товаре"""
+        product = Product("Товар", "Описание", 150, 1)
+        category = Category("Тест", "Тестовая категория", [product])
+
+        assert category.avg_price == 150
+
+
+    def test_avg_price_with_mixed_products(self):
+        """Тест расчета средней цены с разными типами товаров"""
+        product1 = Product("Товар 1", "Описание 1", 100, 10)
+        product2 = Smartphone("Смартфон", "Описание", 500, 10, "High", "X", "128GB", "Black")
+        product3 = LawnGrass("Трава", "Описание", 50, 20, "Russia", "2 weeks", "Green")
+
+        category = Category("Тест", "Тестовая категория", [product1, product2, product3])
+
+        # Ожидаемая средняя цена: (100 + 500 + 50) / 3 ≈ 216.67
+        assert category.avg_price == pytest.approx(216.66666666666666)
+
+    def test_avg_price_after_adding_products(self):
+        """Тест изменения средней цены после добавления товаров"""
+        category = Category("Тест", "Тестовая категория", [])
+        # Первая проверка - пустая категория
+        assert category.avg_price == 0
+
+        product1 = Product("Товар 1", "Описание 1", 100, 10)
+        category.add_product(product1)
+        # Вторая проверка - один товар
+        assert category.avg_price == 100
+
+        product2 = Product("Товар 2", "Описание 2", 300, 5)
+        category.add_product(product2)
+        # Третья проверка - два товара
+        assert category.avg_price == 200
+
+    def test_avg_price_with_zero_price_products(self):
+        """Тест расчета средней цены с товарами по нулевой цене"""
+        product1 = Product("Товар 1", "Описание 1", 0, 10)
+        product2 = Product("Товар 2", "Описание 2", 0, 5)
+
+        category = Category("Тест", "Тестовая категория", [product1, product2])
+        assert category.avg_price == 0
+
+    def test_avg_price_precision(self):
+        """Тест точности расчета средней цены"""
+        product1 = Product("Товар 1", "Описание 1", 100, 10)
+        product2 = Product("Товар 2", "Описание 2", 101, 5)
+
+        category = Category("Тест", "Тестовая категория", [product1, product2])
+        # Ожидаемая средняя цена: (100 + 101) / 2 = 100.5
+        assert category.avg_price == 100.5
+
+
+
+
+
+
+
 ###########################################
 #ТЕСТЫ ДЛЯ КЛАССА MIXINLOG
 
